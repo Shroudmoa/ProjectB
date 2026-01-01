@@ -1,4 +1,4 @@
-Write-Host "Installing fastfetch configuration..."
+Write-Host "V1 :Installing fastfetch configuration..."
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 $UserName = $env:USERNAME
 $UserPath = "C:/Users/$UserName"
@@ -51,3 +51,4 @@ $ProfileContent = $ProfileContent -replace 'fastfetch\s+-c\s+".*config.jsonc"', 
 )
 clear-host
 Write-Host "Installation completed. Restart PowerShell^^"
+
