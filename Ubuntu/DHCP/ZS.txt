@@ -1,0 +1,12 @@
+isc-dhcp-server
+
+
+
+Config
+/etc/dhcp/dhcpd.conf
+etc/default/isc-dhcp-server
+
+
+check
+sudo Systemctl Status isc-dhcp-server
+sudo less /var/lib/dhcp/dhcpd.leases 
