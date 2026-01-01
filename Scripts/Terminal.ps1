@@ -1,9 +1,7 @@
-
-
 Write-Host "Installing fastfetch configuration..."
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-$UserName   = $env:USERNAME
-$UserPath   = "C:/Users/$UserName"
+$UserName = $env:USERNAME
+$UserPath = "C:/Users/$UserName"
 
 $FastfetchDir = "$UserPath/.config/fastfetch"
 $AsciiPath    = "$FastfetchDir/ascii.txt"
@@ -11,6 +9,7 @@ $ConfigPath   = "$FastfetchDir/config.jsonc"
 
 $ProfilePath = $profile.CurrentUserAllHosts
 $ProfileDir  = Split-Path $ProfilePath
+
 
 $ProfileURL = "https://raw.githubusercontent.com/Shroudmoa/ProjectB/refs/heads/main/CTRL%20%2B%20V/Powershell/Microsoft.PowerShell_profile.ps1"
 $AsciiURL   = "https://raw.githubusercontent.com/Shroudmoa/ProjectB/refs/heads/main/CTRL%20%2B%20V/Fastdetch/ascii.txt"
@@ -21,7 +20,6 @@ if (-not (Get-Command fastfetch -ErrorAction SilentlyContinue)) {
     winget install fastfetch -e --accept-source-agreements --accept-package-agreements
 }
 
-
 New-Item -ItemType Directory -Path $FastfetchDir -Force | Out-Null
 New-Item -ItemType Directory -Path $ProfileDir  -Force | Out-Null
 
@@ -29,39 +27,32 @@ New-Item -ItemType Directory -Path $ProfileDir  -Force | Out-Null
 attrib +h "$UserPath/.config"
 
 
-$AsciiRaw   = Invoke-WebRequest $AsciiURL   -UseBasicParsing
-$ConfigRaw  = Invoke-WebRequest $ConfigURL  -UseBasicParsing
-$ProfileRaw = Invoke-WebRequest $ProfileURL -UseBasicParsing
+Invoke-WebRequest $AsciiURL  -OutFile $AsciiPath  -UseBasicParsing
+Invoke-WebRequest $ConfigURL -OutFile $ConfigPath -UseBasicParsing
+Invoke-WebRequest $ProfileURL -OutFile $ProfilePath -UseBasicParsing
 
 
-[System.IO.File]::WriteAllText(
-    $AsciiPath,
-    $AsciiRaw.Content,
-    $Utf8NoBom
-)
+$ConfigContent = Get-Content $ConfigPath -Raw
 
-
-$FixedConfig = $ConfigRaw.Content
-$FixedConfig = $FixedConfig -replace 'C:/Users/%USERPROFILE%', $UserPath
-$FixedConfig = $FixedConfig -replace '"source":\s*".*ascii.txt"', '"source": "' + $UserPath + '/.config/fastfetch/ascii.txt"'
+$ConfigContent = $ConfigContent -replace 'C:/Users/%USERPROFILE%', $UserPath
+$ConfigContent = $ConfigContent -replace '"source":\s*".*ascii.txt"', '"source": "' + $UserPath + '/.config/fastfetch/ascii.txt"'
 
 [System.IO.File]::WriteAllText(
     $ConfigPath,
-    $FixedConfig,
+    $ConfigContent,
     $Utf8NoBom
 )
 
-
 New-Item -Path $ProfilePath -ItemType File -Force | Out-Null
 
+$ProfileContent = Get-Content $ProfilePath -Raw
 
-$FixedProfile = $ProfileRaw.Content
-$FixedProfile = $FixedProfile -replace 'C:/Users/%USERPROFILE%', $UserPath
-$FixedProfile = $FixedProfile -replace 'fastfetch\s+-c\s+".*config.jsonc"', 'fastfetch -c "' + $UserPath + '/.config/fastfetch/config.jsonc"'
+$ProfileContent = $ProfileContent -replace 'C:/Users/%USERPROFILE%', $UserPath
+$ProfileContent = $ProfileContent -replace 'fastfetch\s+-c\s+".*config.jsonc"', 'fastfetch -c "' + $UserPath + '/.config/fastfetch/config.jsonc"'
 
 [System.IO.File]::WriteAllText(
     $ProfilePath,
-    $FixedProfile,
+    $ProfileContent,
     $Utf8NoBom
 )
 
