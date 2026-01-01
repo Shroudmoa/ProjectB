@@ -58,4 +58,6 @@ $ProfileContent = $ProfileContent -replace 'fastfetch\s+-c\s+".*config.jsonc"', 
     $ProfileContent,
     $Utf8NoBom
 )
+Clear-Host
 Write-Host "Installation completed. Restart PowerShell^^"
+
