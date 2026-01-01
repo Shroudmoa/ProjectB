@@ -1,5 +1,7 @@
-Write-Host "V1 :Installing fastfetch configuration..."
+Write-Host "V2 :Installing fastfetch configuration..."
+
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+
 $UserName = $env:USERNAME
 $UserPath = "C:/Users/$UserName"
 
@@ -13,6 +15,7 @@ $ProfileDir  = Split-Path $ProfilePath
 $ProfileURL = "https://raw.githubusercontent.com/Shroudmoa/ProjectB/refs/heads/main/CTRL%20%2B%20V/Powershell/Microsoft.PowerShell_profile.ps1"
 $AsciiURL   = "https://raw.githubusercontent.com/Shroudmoa/ProjectB/refs/heads/main/CTRL%20%2B%20V/Fastdetch/ascii.txt"
 $ConfigURL  = "https://raw.githubusercontent.com/Shroudmoa/ProjectB/refs/heads/main/CTRL%20%2B%20V/Fastdetch/config.jsonc"
+
 if (-not (Get-Command fastfetch -ErrorAction SilentlyContinue)) {
     winget install fastfetch -e --accept-source-agreements --accept-package-agreements
 }
@@ -49,6 +52,5 @@ $ProfileContent = $ProfileContent -replace 'fastfetch\s+-c\s+".*config.jsonc"', 
     $ProfileContent,
     $Utf8NoBom
 )
-clear-host
-Write-Host "Installation completed. Restart PowerShell^^"
 
+Write-Host "Installation completed. Restart PowerShell^^"
