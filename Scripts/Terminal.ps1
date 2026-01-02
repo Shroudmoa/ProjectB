@@ -1,4 +1,4 @@
-Write-Host "V2 :Installing fastfetch configuration..."
+Write-Host "V2 : Installing fastfetch configuration..."
 
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
@@ -31,33 +31,20 @@ if (-not (Test-Path $ProfilePath)) {
     New-Item -Path $ProfilePath -ItemType File -Force | Out-Null
 }
 
-
-Invoke-WebRequest $AsciiURL   -OutFile $AsciiPath   -UseBasicParsing
-Invoke-WebRequest $ConfigURL  -OutFile $ConfigPath  -UseBasicParsing
-Invoke-WebRequest $ProfileURL -OutFile $ProfilePath -UseBasicParsing
+$AsciiContent = (Invoke-WebRequest $AsciiURL -UseBasicParsing).Content
+[System.IO.File]::WriteAllText($AsciiPath, $AsciiContent, $Utf8NoBom)
 
 
-$ConfigContent = Get-Content $ConfigPath -Raw
-
+$ConfigContent = (Invoke-WebRequest $ConfigURL -UseBasicParsing).Content
 $ConfigContent = $ConfigContent -replace 'C:/Users/%USERPROFILE%', $UserPath
 $ConfigContent = $ConfigContent -replace '"source":\s*".*ascii.txt"', '"source": "' + $UserPath + '/.config/fastfetch/ascii.txt"'
+[System.IO.File]::WriteAllText($ConfigPath, $ConfigContent, $Utf8NoBom)
 
-[System.IO.File]::WriteAllText(
-    $ConfigPath,
-    $ConfigContent,
-    $Utf8NoBom
-)
 
-$ProfileContent = Get-Content $ProfilePath -Raw
-
+$ProfileContent = (Invoke-WebRequest $ProfileURL -UseBasicParsing).Content
 $ProfileContent = $ProfileContent -replace 'C:/Users/%USERPROFILE%', $UserPath
 $ProfileContent = $ProfileContent -replace 'fastfetch\s+-c\s+".*config.jsonc"', 'fastfetch -c "' + $UserPath + '/.config/fastfetch/config.jsonc"'
+[System.IO.File]::WriteAllText($ProfilePath, $ProfileContent, $Utf8NoBom)
 
-[System.IO.File]::WriteAllText(
-    $ProfilePath,
-    $ProfileContent,
-    $Utf8NoBom
-)
 Clear-Host
 Write-Host "Installation completed. Restart PowerShell^^"
-
