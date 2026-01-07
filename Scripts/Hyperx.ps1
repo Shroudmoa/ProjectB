@@ -309,6 +309,6 @@ Write-Host " Current Virtual Machines:"
 	}
 	Pause
 }
-		"e" { break }
+		"e" { exit }
 	}
 } while ($true)
