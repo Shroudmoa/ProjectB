@@ -2,7 +2,7 @@
 
 do {
     Clear-Host
-    $choice = Read-Host "help?"
+    $choice = Read-Host "?help?"
 
     switch ($choice) {
 		"install" {
@@ -24,8 +24,12 @@ do {
             iex (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Shroudmoa/ProjectB/refs/heads/main/Scripts/JetFont.ps1").Content
         }
 "3" {
-$code = (Invoke-WebRequest "https://raw.githubusercontent.com/Shroudmoa/ProjectB/refs/heads/main/Scripts/Terminal.ps1").Content -join "`n"
-    & ([ScriptBlock]::Create($code))
+$url  = "https://raw.githubusercontent.com/Shroudmoa/ProjectB/refs/heads/main/Scripts/Terminal.ps1"
+$temp = Join-Path $env:TEMP "Terminal.ps1"
+
+Invoke-WebRequest $url -UseBasicParsing -OutFile $temp
+& $temp
+
 }
 
         "4" {
@@ -98,6 +102,7 @@ $code = (Invoke-WebRequest "https://raw.githubusercontent.com/Shroudmoa/ProjectB
     Write-Host ""
     Read-Host "Press Enter to return to the menu"
 } while ($true)
+
 
 
 
