@@ -1,6 +1,6 @@
  "logo": {
     "type": "file",
-    "source": "C:/Users/mrabu/.config/fastfetch/ascii.txt",
+    "source": "C:/Users/%USERPROFIL%/.config/fastfetch/ascii.txt",
     "color": {
       "1": "#F5E0DC",
       "2": "#F2CDCD",
@@ -15,4 +15,4 @@
     "padding": {
       "top": 1,
       "Right": 3
-    }
+    
