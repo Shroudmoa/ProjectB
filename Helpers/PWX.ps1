@@ -89,7 +89,7 @@ Write-Host "Installation completed. Restart PowerShell^^"
 			Write-Host "4. Config -> C:\Users\%USERPROFILE%\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState"
 			Write-Host "5. New Fastfetch Config -> $env:USERPROFILE\.config\fastfetch\config.jsonc"
 			Write-Host "5+. Open $env:USERPROFILE\.config\fastfetch"
-			Write-Host "6. Delete Fastfetch"
+			Write-Host "Delete = Delete Fastfetch"
         }
 		
 				"5" {
@@ -147,6 +147,7 @@ Write-Host "Installation completed. Restart PowerShell^^"
     Write-Host ""
     Read-Host "Press Enter to return to the menu"
 } while ($true)
+
 
 
 
