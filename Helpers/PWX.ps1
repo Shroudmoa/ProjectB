@@ -6,10 +6,13 @@ do {
 
     switch ($choice) {
 		"install" {
-    iex (Invoke-WebRequest "https://raw.githubusercontent.com/Shroudmoa/ProjectB/refs/heads/main/Scripts/JetFont.ps1").Content
     iex (Invoke-WebRequest "https://raw.githubusercontent.com/Shroudmoa/ProjectB/refs/heads/main/Scripts/Terminal.ps1").Content
     iex (Invoke-WebRequest "https://raw.githubusercontent.com/Shroudmoa/ProjectB/refs/heads/main/Scripts/TerminalTH.ps1").Content
+	iex (Invoke-WebRequest "https://raw.githubusercontent.com/Shroudmoa/ProjectB/refs/heads/main/Scripts/JetFont.ps1").Content
 }
+		"delete"{
+		 iex (Invoke-WebRequest "https://raw.githubusercontent.com/Shroudmoa/ProjectB/refs/heads/main/Scripts/Default.ps1").Content
+		}
 
         "1" {
             Write-Host "Running ASCII.ps1..." -ForegroundColor Green
@@ -36,6 +39,7 @@ do {
 			Write-Host "4. Config -> C:\Users\%USERPROFILE%\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState"
 			Write-Host "5. New Fastfetch Config -> $env:USERPROFILE\.config\fastfetch\config.jsonc"
 			Write-Host "5+. Open $env:USERPROFILE\.config\fastfetch"
+			Write-Host "6. Delete Fastfetch"
         }
 		
 				"5" {
@@ -93,3 +97,4 @@ do {
     Write-Host ""
     Read-Host "Press Enter to return to the menu"
 } while ($true)
+
