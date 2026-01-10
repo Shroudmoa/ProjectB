@@ -25,7 +25,9 @@ do {
         }
         "3" {
             Write-Host "Running Terminal.ps1..." -ForegroundColor Green
-            iex (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Shroudmoa/ProjectB/refs/heads/main/Scripts/Terminal.ps1").Content
+           $code = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Shroudmoa/ProjectB/refs/heads/main/Scripts/Terminal.ps1" -UseBasicParsing
+& ([ScriptBlock]::Create($code.Content))
+
         }
         "4" {
             Write-Host "Running TerminalTH.ps1..." -ForegroundColor Green
@@ -97,4 +99,5 @@ do {
     Write-Host ""
     Read-Host "Press Enter to return to the menu"
 } while ($true)
+
 
