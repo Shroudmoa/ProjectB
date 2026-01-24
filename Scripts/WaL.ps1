@@ -2,7 +2,7 @@
 $baseUrl = "https://raw.githubusercontent.com/Shroudmoa/ProjectB/main/Wallpapers"
 
 
-$rand = Get-Random -Minimum 1 -Maximum 6  
+$rand = Get-Random -Minimum 1 -Maximum 24 
 $randomImage = "$rand.jpg"
 
 
@@ -24,6 +24,6 @@ public class Wallpaper {
 "@
 
 
-[Wallpaper]::SystemParametersInfo(20, 0, $tempPath, 3)
+[Wallpaper]::SystemParametersInfo(24, 0, $tempPath, 3)
 
 Write-Output "Wallpaper gesetzt: $randomImage"
