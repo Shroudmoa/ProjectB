@@ -1,6 +1,6 @@
 $baseUrl = "https://raw.githubusercontent.com/Shroudmoa/ProjectB/main/Wallpapers"
 
-$rand = Get-Random -Minimum 1 -Maximum 24 
+$rand = Get-Random -Minimum 1 -Maximum 41 
 $randomImage = "$rand.jpg"
 
 $downloadUrl = "$baseUrl/$randomImage"
