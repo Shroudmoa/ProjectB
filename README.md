@@ -9,6 +9,15 @@ iex (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Shroudmoa/Project
 iex (Invoke-WebRequest -Uri 
 "https://raw.githubusercontent.com/Shroudmoa/ProjectB/refs/heads/main/Scripts/Hyperx.ps1").Content
 
+iex (Invoke-WebRequest -Uri 
+"https://raw.githubusercontent.com/Shroudmoa/ProjectB/refs/heads/main/Scripts/WaL.ps1").Content
+
+iex (Invoke-WebRequest -Uri 
+"https://raw.githubusercontent.com/Shroudmoa/ProjectB/refs/heads/main/Scripts/Start-Matrix.ps1").Content
+
+
+
+
 
 ASCII :
 https://steamcommunity.com/groups/asciiartamalgamation
