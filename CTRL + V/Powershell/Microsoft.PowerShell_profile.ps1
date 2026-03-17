@@ -8,6 +8,10 @@ try {
 } catch {}
 
 Clear-Host
+#Import-Module posh-git
+
+#oh-my-posh init pwsh --config 'C:\Users\moa\.config\ohmyposh\tokyo.omp.json' | Invoke-Expression
+
 
 # Force Fastfetch to use YOUR config every time (bypass path confusion)
 if (Get-Command fastfetch -ErrorAction SilentlyContinue) {
