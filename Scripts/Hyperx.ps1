@@ -50,45 +50,64 @@ function Open-VMConsole {
 function Show-Menu {
     $menuItems = @(
         @{ Id = "0"; Label = "Show VMs" }
-        @{ Id = "1";  Label = "Start VM" }
-        @{ Id = "2";  Label = "Shutdown VM" }
-        @{ Id = "3";  Label = "Force Stop VM" }
-        @{ Id = "4";  Label = "Delete VM" }
-        @{ Id = "5";  Label = "Create VM" }
-        @{ Id = "6";  Label = "Export VM" }
-        @{ Id = "7";  Label = "Import VM" }
-        @{ Id = "8";  Label = "List vSwitches" }
-        @{ Id = "9";  Label = "Live Dashboard" }
+        @{ Id = "1"; Label = "Start VM" }
+        @{ Id = "2"; Label = "Shutdown VM" }
+        @{ Id = "3"; Label = "Force Stop VM" }
+        @{ Id = "4"; Label = "Delete VM" }
+        @{ Id = "5"; Label = "Create VM" }
+        @{ Id = "6"; Label = "Export VM" }
+        @{ Id = "7"; Label = "Import VM" }
+        @{ Id = "8"; Label = "List vSwitches" }
+        @{ Id = "9"; Label = "Live Dashboard" }
         @{ Id = "10"; Label = "Change Switch" }
         @{ Id = "11"; Label = "Create vSwitch" }
         @{ Id = "12"; Label = "Delete vSwitch" }
         @{ Id = "15"; Label = "Open VM Console" }
-        @{ Id = "e";  Label = "Exit" }
+        @{ Id = "e"; Label = "Exit" }
     )
 
+    $cols = 3   # 🔥 Anzahl Spalten (ändern wie du willst)
     $index = 0
 
     while ($true) {
         Clear-Host
-        
+
         Write-Host "(//_^)" -ForegroundColor DarkCyan
         Write-Host "=== Hyper-X Menu ===`n"
 
-        for ($i = 0; $i -lt $menuItems.Count; $i++) {
-            $item = $menuItems[$i]
+        for ($i = 0; $i -lt $menuItems.Count; $i += $cols) {
 
-            if ($i -eq $index) {
-                Write-Host "> [$($item.Id)] $($item.Label)" -ForegroundColor Green
-            } else {
-                Write-Host "  [$($item.Id)] $($item.Label)"
+            $row = $menuItems[$i..([math]::Min($i+$cols-1, $menuItems.Count-1))]
+
+            for ($j = 0; $j -lt $row.Count; $j++) {
+                $itemIndex = $i + $j
+                $item = $row[$j]
+
+                $text = "[{0}] {1}" -f $item.Id, $item.Label
+
+                if ($itemIndex -eq $index) {
+                    Write-Host ("{0,-30}" -f ("> " + $text)) -ForegroundColor Green -NoNewline
+                } else {
+                    Write-Host ("{0,-30}" -f ("  " + $text)) -NoNewline
+                }
             }
+            Write-Host ""
+            Write-Host ""
         }
 
         $key = [System.Console]::ReadKey($true)
 
         switch ($key.Key) {
-            "UpArrow"   { if ($index -gt 0) { $index-- } }
-            "DownArrow" { if ($index -lt $menuItems.Count - 1) { $index++ } }
+            "LeftArrow"  { if ($index -gt 0) { $index-- } }
+            "RightArrow" { if ($index -lt $menuItems.Count - 1) { $index++ } }
+
+            "UpArrow" {
+                if ($index -ge $cols) { $index -= $cols }
+            }
+
+            "DownArrow" {
+                if ($index + $cols -lt $menuItems.Count) { $index += $cols }
+            }
 
             "Enter" { return $menuItems[$index].Id }
 
