@@ -66,7 +66,7 @@ function Show-Menu {
         @{ Id = "e"; Label = "Exit" }
     )
 
-    $cols = 3   # 🔥 Anzahl Spalten (ändern wie du willst)
+    $cols = 3  
     $index = 0
 
     while ($true) {
@@ -249,7 +249,7 @@ do {
         }
 
         "e" {
-            Write-Host "Bye!" -ForegroundColor Cyan
+            Write-Host "Roses are red, violets are blue" -ForegroundColor Cyan
             exit
         }
     }
