@@ -155,7 +155,7 @@ Write-Host " Current Virtual Machines:"
 			New-Item -ItemType Directory -Path $path -Force | Out-Null
 			New-VM `
 				-Name $name `
-				-Generation 2 `
+				-Generation 1 `
 				-MemoryStartupBytes ([UInt64]$ram * 1MB) `
 				-NewVHDPath "$path\$name.vhdx" `
 				-NewVHDSizeBytes ([UInt64]$vhd * 1GB) `
