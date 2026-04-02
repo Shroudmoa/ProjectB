@@ -1,14 +1,9 @@
-# ===============================
-# SW.ps1 – Hyper-V Switch Tool
-# Version 3 – DNS SAFE EDITION
-# ===============================
+
 
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
-# -------------------------------
-# Helpers
-# -------------------------------
+
 function Msg($t,$c="Info",$i=[System.Windows.Forms.MessageBoxIcon]::Information){
     [System.Windows.Forms.MessageBox]::Show($t,$c,[System.Windows.Forms.MessageBoxButtons]::OK,$i) | Out-Null
 }
@@ -17,24 +12,17 @@ function Log($m){
     Add-Content $global:LogFile "$(Get-Date -f 'yyyy-MM-dd HH:mm:ss') $m"
 }
 
-# -------------------------------
-# Admin check
-# -------------------------------
+
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
 ).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){
     Msg "Bitte PowerShell als Administrator starten!" "Admin erforderlich" ([System.Windows.Forms.MessageBoxIcon]::Error)
     exit
 }
 
-# -------------------------------
-# Log
-# -------------------------------
 $global:LogFile="$env:TEMP\SW_V3_$(Get-Date -f yyyyMMdd_HHmmss).log"
 Log "SW Tool Version 3 gestartet"
 
-# -------------------------------
-# GUI
-# -------------------------------
+
 $form=New-Object System.Windows.Forms.Form
 $form.Text="Hyper-V Switch Tool – Version 3 (DNS Safe)"
 $form.Size="620,260"
@@ -68,9 +56,7 @@ $btn.Location="420,120"
 $btn.Size="150,35"
 $form.Controls.Add($btn)
 
-# -------------------------------
-# Adapter laden (inkl WLAN)
-# -------------------------------
+
 function Load-Adapters{
     $cb.Items.Clear()
     Get-NetAdapter | Where-Object {
@@ -85,9 +71,7 @@ Load-Adapters
 $cb.Enabled=-not $chk.Checked
 $chk.Add_CheckedChanged({$cb.Enabled=-not $chk.Checked})
 
-# -------------------------------
-# MAIN
-# -------------------------------
+
 $btn.Add_Click({
 
     # Adapter bestimmen
@@ -110,7 +94,7 @@ $btn.Add_Click({
 
     Log "Adapter: $($adapter.Name)"
 
-    # IP & DNS sichern
+ 
     $ip=Get-NetIPAddress -InterfaceIndex $adapter.ifIndex -AddressFamily IPv4 |
         Where {$_.IPAddress -ne "127.0.0.1"} | Select -First 1
 
@@ -119,7 +103,7 @@ $btn.Add_Click({
 
     Log "IP=$($ip.IPAddress) DNS=$($dns -join ',')"
 
-    # Switch erstellen
+  
     try{
         New-VMSwitch -Name $sw -NetAdapterName $adapter.Name -AllowManagementOS $true -ErrorAction Stop
     }catch{
@@ -127,7 +111,7 @@ $btn.Add_Click({
         return
     }
 
-    # Warten bis vEthernet READY
+
     $vNic=$null
     for($i=0;$i -lt 10;$i++){
         Start-Sleep 1
@@ -140,7 +124,7 @@ $btn.Add_Click({
         return
     }
 
-    # IP setzen
+
     if($ip){
         New-NetIPAddress -InterfaceIndex $vNic.ifIndex `
             -IPAddress $ip.IPAddress `
@@ -148,7 +132,7 @@ $btn.Add_Click({
             -DefaultGateway $ip.NextHop -ErrorAction SilentlyContinue
     }
 
-    # DNS setzen + Fallback
+
     if($dns){
         Set-DnsClientServerAddress -InterfaceIndex $vNic.ifIndex -ServerAddresses $dns
         Log "DNS gesetzt"
@@ -164,7 +148,7 @@ $btn.Add_Click({
         Msg "WARNUNG: DNS leer! Bitte prüfen." "Warnung" ([System.Windows.Forms.MessageBoxIcon]::Warning)
     }
 
-    Msg "Switch erstellt & Netzwerk stabil gesetzt ✅"
+    Msg "Switch erstellt & Netzwerk stabil gesetzt"
     Log "Fertig"
 })
 
