@@ -51,9 +51,15 @@ $btn.Location="420,120"
 $btn.Size=New-Object System.Drawing.Size(150,35)
 $form.Controls.Add($btn)
 
-function Load-Adapters{
+function Load-Adapters {
     $cb.Items.Clear()
     Get-NetAdapter | Where-Object {
-        $_.Status -eq "Up" -and
-        $_.Name -notmatch "vEthernet"
-    } | For
+        $_.Status -eq "Up" -and $_.Name -notmatch "vEthernet"
+    } | ForEach-Object {
+        $cb.Items.Add($_.Name) | Out-Null
+    }
+
+    if ($chk.Checked -and $cb.Items.Count -gt 0) {
+        $cb.SelectedIndex = 0
+    }
+}
