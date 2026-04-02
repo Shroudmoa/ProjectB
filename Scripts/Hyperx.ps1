@@ -20,6 +20,23 @@ function Select-VM {
     return $null
 }
 
+function Show-VMList {
+    
+    Write-Host "Current Virtual Machines:"
+    Write-Host "-----------------------------------------------------------"
+
+    Get-VM | ForEach-Object {
+        $net = Get-VMNetworkAdapter -VMName $_.Name -ErrorAction SilentlyContinue
+        "{0,-15} {1,-10} {2,-18} {3}" -f `
+            $_.Name,
+            $_.State,
+            ($net.IPAddresses -join ","),
+            $net.SwitchName
+    }
+
+    Write-Host "-----------------------------------------------------------`n"
+}
+
 function Open-VMConsole {
     $vm = Select-VM
     if ($vm) {
@@ -32,6 +49,7 @@ function Open-VMConsole {
 
 function Show-Menu {
     $menuItems = @(
+        @{ Id = "0"; Label = "Show VMs" }
         @{ Id = "1";  Label = "Start VM" }
         @{ Id = "2";  Label = "Shutdown VM" }
         @{ Id = "3";  Label = "Force Stop VM" }
@@ -52,6 +70,7 @@ function Show-Menu {
 
     while ($true) {
         Clear-Host
+        
         Write-Host "(//_^)" -ForegroundColor DarkCyan
         Write-Host "=== Hyper-X Menu ===`n"
 
@@ -70,10 +89,11 @@ function Show-Menu {
         switch ($key.Key) {
             "UpArrow"   { if ($index -gt 0) { $index-- } }
             "DownArrow" { if ($index -lt $menuItems.Count - 1) { $index++ } }
-            "Enter"     { return $menuItems[$index].Id }
+
+            "Enter" { return $menuItems[$index].Id }
 
             default {
-                if ($key.KeyChar -match '[0-9e]') {
+                if ($key.KeyChar) {
                     return "$($key.KeyChar)"
                 }
             }
@@ -82,6 +102,7 @@ function Show-Menu {
 }
 
 do {
+    
     $choice = Show-Menu
 
     switch ($choice) {
@@ -136,10 +157,13 @@ do {
             $gen = Read-Host "Choice"
             if ($gen -ne "1") { $gen = 2 }
 
+            $path = "C:\VMs\$name"
+            New-Item -ItemType Directory -Path $path -Force | Out-Null
+
             New-VM -Name $name `
                 -Generation $gen `
                 -MemoryStartupBytes ($ram * 1MB) `
-                -NewVHDPath "C:\VMs\$name\$name.vhdx" `
+                -NewVHDPath "$path\$name.vhdx" `
                 -NewVHDSizeBytes ($vhd * 1GB)
 
             if ($gen -eq 2) {
@@ -158,6 +182,8 @@ do {
         }
 
         "9" {
+            Write-Host "LIVE DASHBOARD (CTRL+C to exit)" -ForegroundColor Yellow
+            Start-Sleep 2
             while ($true) {
                 Clear-Host
                 Get-VM | Select Name, State, CPUUsage,
@@ -168,31 +194,45 @@ do {
         }
 
         "10" {
-            Write-Host "Switch change not implemented here (use your function)"
+            Write-Host "Use your existing Change-VM-Switch function here"
             Pause
         }
 
         "11" {
             $name = Read-Host "Switch Name"
             New-VMSwitch -Name $name -SwitchType Internal
-            Write-Host "Switch created."
+            Write-Host "Switch created." -ForegroundColor Green
             Pause
         }
 
         "12" {
-            $sw = Get-VMSwitch | Select -First 1
+            $switches = Get-VMSwitch
+            for ($i=0;$i -lt $switches.Count;$i++){
+                Write-Host "$($i+1). $($switches[$i].Name)"
+            }
+            $sel = Read-Host "Select switch"
+            $sw = $switches[$sel-1]
+
             if ($sw) {
                 Remove-VMSwitch -Name $sw.Name -Force
-                Write-Host "Deleted."
+                Write-Host "Deleted." -ForegroundColor Green
             }
             Pause
+        }
+        "0"{
+            Show-VMList
+            Pause
+            
         }
 
         "15" {
             Open-VMConsole
         }
 
-        "e" { break }
+        "e" {
+            Write-Host "Bye!" -ForegroundColor Cyan
+            exit
+        }
     }
 
 } while ($true)
