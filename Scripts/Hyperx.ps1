@@ -1,5 +1,63 @@
 Add-Type -AssemblyName System.Windows.Forms
+function Select-Folder {
+	$d = New-Object System.Windows.Forms.FolderBrowserDialog
+	if ($d.ShowDialog() -eq "OK") { return $d.SelectedPath }
+}
+function Select-ISO {
+	$d = New-Object System.Windows.Forms.OpenFileDialog
+	$d.Filter = "ISO (*.iso)|*.iso"
+	if ($d.ShowDialog() -eq "OK") { return $d.FileName }
+}
+function Change-VM-Switch {
 
+    $vm = Select-VM
+    if (-not $vm) { return }
+
+    $switches = Get-VMSwitch
+    if ($switches.Count -eq 0) {
+        Write-Host "No virtual switches found!" -ForegroundColor Red
+        Pause
+        return
+    }
+
+    Write-Host "`nAvailable virtual switches:`n"
+
+    for ($i = 0; $i -lt $switches.Count; $i++) {
+        Write-Host "$($i+1). $($switches[$i].Name) [$($switches[$i].SwitchType)]"
+    }
+
+    $choice = Read-Host "`nSelect switch number"
+    if ($choice -notmatch '^\d+$' -or $choice -lt 1 -or $choice -gt $switches.Count) {
+        Write-Host "Invalid selection!" -ForegroundColor Red
+        Pause
+        return
+    }
+
+    $newSwitch = $switches[$choice - 1]
+
+    $adapters = Get-VMNetworkAdapter -VMName $vm.Name
+    if ($adapters.Count -eq 0) {
+        Write-Host "VM has no network adapters!" -ForegroundColor Red
+        Pause
+        return
+    }
+
+    foreach ($adapter in $adapters) {
+        try {
+            Connect-VMNetworkAdapter `
+                -VMNetworkAdapter $adapter `
+                -SwitchName $newSwitch.Name `
+                -ErrorAction Stop
+
+            Write-Host "Adapter '$($adapter.Name)' → '$($newSwitch.Name)'" -ForegroundColor Green
+        }
+        catch {
+            Write-Host "Failed: $($_.Exception.Message)" -ForegroundColor Red
+        }
+    }
+
+    Pause
+}
 function Pause {
     Write-Host ""
     Read-Host "Press ENTER to continue"
@@ -125,6 +183,28 @@ do {
     $choice = Show-Menu
 
     switch ($choice) {
+         "6" {
+			$vm = Select-VM
+			if ($vm) {
+				$path = Select-Folder
+				if ($path) {
+					Export-VM -Name $vm.Name -Path $path
+				}
+			}
+			Pause
+		}
+        "7" {
+			$path = Select-Folder
+			if (!$path) { break }
+			$vmConfig = Get-ChildItem $path -Recurse -Include *.vmcx,*.xml | Select-Object -First 1
+			if (!$vmConfig) {
+				Write-Host "No VM config found!" -ForegroundColor Red
+				Pause
+				break
+			}
+			Import-VM -Path $vmConfig.FullName -Copy -GenerateNewId
+			Pause
+		}
 
         "1" {
             $vm = Select-VM
@@ -150,55 +230,75 @@ do {
             Pause
         }
 
-        "4" {
-            $vm = Select-VM
-            if ($vm) {
-                $confirm = Read-Host "Delete VM '$($vm.Name)'? (y/n)"
-                if ($confirm -ne "y") { break }
-
-                if ($vm.State -ne "Off") {
-                    Stop-VM -Name $vm.Name -TurnOff -Force
-                }
-
-                Remove-VM -Name $vm.Name -Force
-                Write-Host "VM deleted." -ForegroundColor Green
-                Pause
-            }
-        }
+      		"4" {
+			$vm = Select-VM
+			if ($vm) {
+				$confirm = Read-Host "Delete VM '$($vm.Name)'? (y/n)"
+				if ($confirm -ne "y") { break }
+				
+				if ($vm.State -ne "Off") {
+					Stop-VM -Name $vm.Name -TurnOff -Force
+				}
+				
+				Get-VMSnapshot -VMName $vm.Name -ErrorAction SilentlyContinue |
+					Remove-VMSnapshot -ErrorAction Stop
+				
+				$vhdPaths = Get-VMHardDiskDrive -VMName $vm.Name |
+					Select-Object -ExpandProperty Path
+				
+				Remove-VM -Name $vm.Name -Force
+				
+				$del = Read-Host "Delete VHD files too? (y/n)"
+				if ($del -eq "y") {
+					foreach ($vhd in $vhdPaths) {
+						Remove-Item $vhd -Force -ErrorAction SilentlyContinue
+					}
+				}
+				Write-Host "VM deleted successfully." -ForegroundColor Green
+				Pause
+			}
+		}
 
         "5" {
-            $name = Read-Host "VM Name"
-            $ram  = [int](Read-Host "RAM (MB)")
-            $cpu  = [int](Read-Host "CPU Count")
-            $vhd  = [int](Read-Host "VHD Size (GB)")
-
-            Write-Host "Generation: 1=BIOS | 2=UEFI"
-            $gen = Read-Host "Choice"
-            if ($gen -ne "1") { $gen = 2 }
-
-            $path = "C:\VMs\$name"
-            New-Item -ItemType Directory -Path $path -Force | Out-Null
-
-            New-VM -Name $name `
-                -Generation $gen `
-                -MemoryStartupBytes ($ram * 1MB) `
-                -NewVHDPath "$path\$name.vhdx" `
-                -NewVHDSizeBytes ($vhd * 1GB)
-
-            if ($gen -eq 2) {
-                Set-VMFirmware -VMName $name -EnableSecureBoot Off
-            }
-
-            Set-VM -Name $name -ProcessorCount $cpu
-
-            Write-Host "VM created." -ForegroundColor Green
-            Pause
+			$name = Read-Host "VM Name"
+			$ram  = [int] (Read-Host "Startup RAM (MB)")
+			$cpu  = [int] (Read-Host "CPU Count")
+			$vhd  = [int] (Read-Host "VHD Size (GB)")
+			$iso = Select-ISO
+			if (!$iso) { break }
+			$switches = Get-VMSwitch
+			for ($i=0;$i -lt $switches.Count;$i++){
+				Write-Host "$($i+1). $($switches[$i].Name)"
+			}
+			$sw = Read-Host "Select switch number"
+			$switch = $switches[$sw-1].Name
+			$path = "C:\VMs\$name"
+			New-Item -ItemType Directory -Path $path -Force | Out-Null
+			New-VM `
+				-Name $name `
+				-Generation 1 `
+				-MemoryStartupBytes ([UInt64]$ram * 1MB) `
+				-NewVHDPath "$path\$name.vhdx" `
+				-NewVHDSizeBytes ([UInt64]$vhd * 1GB) `
+				-SwitchName $switch
+			Set-VM -Name $name -ProcessorCount $cpu
+			Set-VMFirmware -VMName $name -EnableSecureBoot Off
+			Add-VMDvdDrive -VMName $name -Path $iso
+			Write-Host "VM created successfully." -ForegroundColor Green
+			Pause
         }
 
         "8" {
-            Get-VMSwitch | Format-Table Name, SwitchType
-            Pause
-        }
+           	Get-VMSwitch | ForEach-Object {
+				[PSCustomObject]@{
+					SwitchName = $_.Name
+					Type	   = $_.SwitchType
+					NIC		   = $_.NetAdapterInterfaceDescription
+				}
+			} | Format-Table -AutoSize
+			Pause
+		}
+        
 
         "9" {
             Write-Host "LIVE DASHBOARD (CTRL+C to exit)" -ForegroundColor Yellow
@@ -213,15 +313,12 @@ do {
         }
 
         "10" {
-            Write-Host "Use your existing Change-VM-Switch function here"
+            Change-VM-Switch
             Pause
         }
 
         "11" {
-            $name = Read-Host "Switch Name"
-            New-VMSwitch -Name $name -SwitchType Internal
-            Write-Host "Switch created." -ForegroundColor Green
-            Pause
+            pause
         }
 
         "12" {
