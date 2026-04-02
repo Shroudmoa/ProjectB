@@ -317,9 +317,62 @@ do {
             Pause
         }
 
-        "11" {
-            iex (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Shroudmoa/ProjectB/refs/heads/main/SW.ps1").Content
-        }
+        	"11"{
+	Clear-Host
+	Write-Host "=== Create Hyper-V Virtual Switch ===" -ForegroundColor Cyan
+	Write-Host ""
+	$switchName = Read-Host "Enter new switch name"
+	if (-not $switchName) {
+		Write-Host "Switch name cannot be empty!" -ForegroundColor Red
+		Pause
+		break
+	}
+	Write-Host ""
+	Write-Host "Select switch type:"
+	Write-Host "1 - External"
+	Write-Host "2 - Internal"
+	Write-Host "3 - Private"
+	$type = Read-Host "Choice (1-3)"
+	switch ($type) {
+		"1" {
+		  iex (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Shroudmoa/ProjectB/refs/heads/main/SW.ps1").Content
+		}
+		#int
+		"2" {
+			New-VMSwitch -Name $switchName -SwitchType Internal
+			Write-Host "Internal switch '$switchName' created" -ForegroundColor Green
+			Write-Host ""
+			$cfg = Read-Host "Configure IP for host adapter? (y/n)"
+			if ($cfg -eq "y") {
+				$ip		= Read-Host "IP Address (e.g. 192.168.100.1)"
+				$prefix = Read-Host "Prefix length (e.g. 24)"
+				$gw		= Read-Host "Gateway (optional)"
+				$dns	= Read-Host "DNS (optional)"
+				$ifName = "vEthernet ($switchName)"
+				New-NetIPAddress `
+					-InterfaceAlias $ifName `
+					-IPAddress $ip `
+					-PrefixLength $prefix `
+					-DefaultGateway $gw `
+					-ErrorAction SilentlyContinue
+				if ($dns) {
+					Set-DnsClientServerAddress `
+						-InterfaceAlias $ifName `
+						-ServerAddresses $dns
+				}
+				Write-Host "IP configuration applied to $ifName" -ForegroundColor Green
+			}
+		}
+		"3" {
+			New-VMSwitch -Name $switchName -SwitchType Private
+			Write-Host "Private switch '$switchName' created" -ForegroundColor Green
+		}
+		default {
+			Write-Host "Invalid switch type!" -ForegroundColor Red
+		}
+	}
+	Pause
+}
 
         "12" {
             $switches = Get-VMSwitch
