@@ -1,4 +1,4 @@
-Add-Type -AssemblyName System.Windows.Forms
+#Add-Type -AssemblyName System.Windows.Forms
 function Select-Folder {
 	$d = New-Object System.Windows.Forms.FolderBrowserDialog
 	if ($d.ShowDialog() -eq "OK") { return $d.SelectedPath }
@@ -117,11 +117,12 @@ function Show-Menu {
         @{ Id = "7"; Label = "Import VM" }
         @{ Id = "8"; Label = "List vSwitches" }
         @{ Id = "9"; Label = "Live Dashboard" }
-        @{ Id = "10"; Label = "Change Switch" }
-        @{ Id = "11"; Label = "Create vSwitch" }
-        @{ Id = "12"; Label = "Delete vSwitch" }
-        @{ Id = "15"; Label = "Open VM Console" }
+        @{ Id = "s"; Label = "Change Switch" }
+        @{ Id = "c"; Label = "Create vSwitch" }
+        @{ Id = "d"; Label = "Delete vSwitch" }
+        @{ Id = "o"; Label = "Open VM Console" }
         @{ Id = "e"; Label = "Exit" }
+        @{ id = "b"; Label = "BIOS" }
     )
 
     $cols = 3  
@@ -312,12 +313,12 @@ do {
             }
         }
 
-        "10" {
+        "s" {
             Change-VM-Switch
             Pause
         }
 
-        	"11"{
+        	"c"{
 	Clear-Host
 	Write-Host "=== Create Hyper-V Virtual Switch ===" -ForegroundColor Cyan
 	Write-Host ""
@@ -374,7 +375,7 @@ do {
 	Pause
 }
 
-        "12" {
+        "d" {
             $switches = Get-VMSwitch
             for ($i=0;$i -lt $switches.Count;$i++){
                 Write-Host "$($i+1). $($switches[$i].Name)"
@@ -394,7 +395,77 @@ do {
             
         }
 
-        "15" {
+       "b"{
+# Get all VMs, sorted by name
+$vmList = Get-VM | Sort-Object Name
+if (!$vmList) { Write-Host "No VMs found." -ForegroundColor Yellow; exit }
+
+# Display VM list
+Write-Host "Available VMs:"
+for ($i = 0; $i -lt $vmList.Count; $i++) {
+    Write-Host "$($i+1). $($vmList[$i].Name)"
+}
+
+# Ask user to select a VM
+$choice = Read-Host "Select VM by number"
+if ($choice -notmatch '^\d+$' -or $choice -lt 1 -or $choice -gt $vmList.Count) { exit }
+
+$vm = $vmList[$choice - 1]
+
+# Only allow Generation 1 VMs
+if ($vm.Generation -ne 1) {
+    Write-Host "This script only supports Generation 1 VMs." -ForegroundColor Yellow
+    exit
+}
+
+# Get current bootable devices on this VM
+$existingDevices = (Get-VMBios -VMName $vm.Name).StartupOrder
+
+# Define all possible devices
+$map = @{
+    1 = "IDE"
+    2 = "CD"
+    3 = "Floppy"
+    4 = "LegacyNetworkAdapter"
+}
+
+# Show boot device options
+Write-Host "Boot device options:"
+foreach ($num in $map.Keys | Sort-Object) {
+    if ($existingDevices -contains $map[$num]) {
+        Write-Host "$num. $($map[$num])"
+    }
+}
+
+# Ask user for desired boot order
+$order = Read-Host "Enter desired order (e.g., 2,1,3)"
+if ($order -notmatch '^\d+(,\d+)*$') { exit }
+
+# Build new boot order based on user input, only include existing devices
+$new = @()
+foreach ($n in ($order -split ",")) {
+    $device = $map[[int]$n]
+    if ($device -and ($existingDevices -contains $device) -and ($new -notcontains $device)) {
+        $new += $device
+    }
+}
+
+# Ensure at least 2 devices
+if ($new.Count -lt 2) {
+    $new = $existingDevices
+}
+
+# Apply the new boot order
+try {
+    Set-VMBios -VMName $vm.Name -StartupOrder $new
+    Write-Host "Boot order updated successfully:" -ForegroundColor Green
+    $new
+} catch {
+    Write-Host "Failed to set boot order:" $_.Exception.Message -ForegroundColor Red
+}
+}
+
+        "o" {
             Open-VMConsole
         }
 
