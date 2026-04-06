@@ -1,8 +1,9 @@
-#Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Windows.Forms
 function Select-Folder {
 	$d = New-Object System.Windows.Forms.FolderBrowserDialog
 	if ($d.ShowDialog() -eq "OK") { return $d.SelectedPath }
 }
+
 function Select-ISO {
 	$d = New-Object System.Windows.Forms.OpenFileDialog
 	$d.Filter = "ISO (*.iso)|*.iso"
