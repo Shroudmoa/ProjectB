@@ -261,7 +261,7 @@ do {
 		}
 
         "5" {
-			$name = Read-Host "VM Name"
+		$name = Read-Host "VM Name"
 			$ram  = [int] (Read-Host "Startup RAM (MB)")
 			$cpu  = [int] (Read-Host "CPU Count")
 			$vhd  = [int] (Read-Host "VHD Size (GB)")
