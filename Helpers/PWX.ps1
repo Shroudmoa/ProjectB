@@ -70,6 +70,12 @@ Invoke-WebRequest $url -UseBasicParsing -OutFile $temp
 					if ($copyConfig -eq "yes") {
 						$defaultUrl = "https://raw.githubusercontent.com/Shroudmoa/ProjectB/refs/heads/main/Arcive/config.jsonc"
 						$defaultConfig = Invoke-WebRequest -Uri $defaultUrl -UseBasicParsing
+						$config = Get-Content $targetPath -Raw
+
+                        $config = $config -replace 'C:/Users/[^/]+/.config/fastfetch/ascii.txt',
+                                                    "$($env:USERPROFILE.Replace('\','/'))/.config/fastfetch/ascii.txt"
+
+                        Set-Content $targetPath $config
 						$defaultConfig.Content | Set-Clipboard
 						Write-Host "Default Shroudmoa config copied to clipboard."
 						}
