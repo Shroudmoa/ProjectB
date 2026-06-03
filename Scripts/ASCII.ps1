@@ -23,7 +23,7 @@ for ($i = 0; $i -lt $Total; $i++) {
     $Result += ('$' + $Color + $Lines[$i])
 }
 
-$Final = $Result -join "`n"
+$Final = ($Result -join "`n") + "`n"
 $UserName = $env:USERNAME
 $FastfetchDir = "C:/Users/$UserName/.config/fastfetch"
 $AsciiPath = "$FastfetchDir/ascii.txt"
